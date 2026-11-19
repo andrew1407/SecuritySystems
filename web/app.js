@@ -168,6 +168,7 @@ for (const [label, cmds] of CHIPS) {
 // --- copy ---
 async function copyText(btn, text) {
   const old = btn.textContent;
+  btn.style.minWidth = btn.style.minWidth || btn.getBoundingClientRect().width + 'px';
   try {
     await navigator.clipboard.writeText(text);
     btn.textContent = 'Copied';
