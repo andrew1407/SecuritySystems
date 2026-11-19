@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+# Native run outputs (./setup.sh, ./run.sh)
+disk-model/
+out/
+
+# Showcase build outputs (built in CI by web/wasm/build.sh and web/wasm/disk.sh)
+web/build/
+_site/

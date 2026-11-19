@@ -1,0 +1,51 @@
+name: Deploy showcase to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 7.0.0
+
+      # Compile src/ + lib/mathexpr with the web shim to web/build/security.mjs + .wasm
+      - name: Build WebAssembly module
+        run: ./web/wasm/build.sh
+
+      # Run the repo's setup.sh (8192-bit admin keypair, encrypted journal and log) and pack its disk-model/
+      - name: Make the disk model
+        run: ./web/wasm/disk.sh
+
+      - name: Assemble site
+        run: |
+          mkdir -p _site/web
+          cp web/*.html web/*.js web/*.svg _site/web/
+          cp -r web/build _site/web/
+          echo '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=./web/"><title>Security Systems</title><link rel="icon" href="./web/icon.svg"><a href="./web/">Open the showcase</a>' > _site/index.html
+          touch _site/.nojekyll
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

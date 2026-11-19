@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Security Systems</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <script src="theme.js"></script>
+  <meta name="description" content="Run the SecuritySystems access-control console app in your browser: the real C++ compiled to WebAssembly, with role-based chmod access, RSA-encrypted journal and log, FFT arithmetic and verification challenges.">
+  <style>
+    :root {
+      --bg: #f6f7f9; --panel: #ffffff; --ink: #1b1f24; --muted: #5d6673; --line: #dfe3e8; --grid: #eceff3;
+      --accent: #3557d6; --accent-ink: #ffffff; --soft: #eef1fb; --err: #c0362c; --err-soft: #fdecea; --ok: #1f8a4c; --ok-soft: #e3f4ea;
+      --c2: #d4731f; --c7: #b8971b;
+      --cpp: #1d8ea3; --cpp-soft: #dcf1f4;
+      --term-bg: #fbfbfc; --term-ink: #1b1f24; --term-typed: #3557d6; --term-sel: #cdd8ff;
+      --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #111418; --panel: #191d23; --ink: #e6e9ee; --muted: #9aa4b2; --line: #2b313a; --grid: #222830;
+        --accent: #7c97ff; --accent-ink: #0d1117; --soft: #1f2636; --err: #ff7b72; --err-soft: #3a1d1c; --ok: #4fd18b; --ok-soft: #16301f;
+        --c2: #f0a050; --c7: #e0c050;
+        --cpp: #4cc4d8; --cpp-soft: #133238;
+        --term-bg: #0d1014; --term-ink: #dfe4ea; --term-typed: #8fa6ff; --term-sel: #2d3b66;
+        color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #111418; --panel: #191d23; --ink: #e6e9ee; --muted: #9aa4b2; --line: #2b313a; --grid: #222830;
+      --accent: #7c97ff; --accent-ink: #0d1117; --soft: #1f2636; --err: #ff7b72; --err-soft: #3a1d1c; --ok: #4fd18b; --ok-soft: #16301f;
+      --c2: #f0a050; --c7: #e0c050;
+      --cpp: #4cc4d8; --cpp-soft: #133238;
+      --term-bg: #0d1014; --term-ink: #dfe4ea; --term-typed: #8fa6ff; --term-sel: #2d3b66;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 28px 16px 64px; }
+    header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px; }
+    header img { flex: none; width: 52px; height: 52px; }
+    h1 { font-size: 24px; margin: 0; letter-spacing: -.01em; }
+    header p { margin: 2px 0 0; color: var(--muted); }
+    a { color: var(--accent); }
+    code { font-family: var(--mono); font-size: .92em; }
+    button { font: inherit; cursor: pointer; }
+    [hidden] { display: none !important; }
+
+    .layout { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+    @media (min-width: 1000px) { .layout { grid-template-columns: minmax(0, 1fr) 330px; align-items: start; } }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+    .layout .panel { margin-bottom: 0; }
+    aside { display: grid; gap: 16px; }
+    h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; font-weight: 600; }
+    .lang { font: 600 10px/1 system-ui, sans-serif; letter-spacing: .04em; padding: 3px 5px; border-radius: 5px; border: 1px solid; text-transform: uppercase; color: var(--cpp); background: var(--cpp-soft); border-color: var(--cpp); }
+    .hint { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+    .mini { border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 6px; font-size: 12px; padding: 2px 8px; white-space: nowrap; }
+    .mini:hover { border-color: var(--accent); color: var(--accent); }
+    .op { padding: 6px 11px; border: 1px solid var(--accent); border-radius: 8px; background: var(--soft); color: var(--ink); font-size: 14px; }
+    .op:hover:not(:disabled) { background: var(--accent); color: var(--accent-ink); }
+    .op:disabled { opacity: .45; cursor: not-allowed; }
+    .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+    /* terminal */
+    .term-panel { padding: 0; overflow: hidden; }
+    .term-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+    .term-bar .title { font: 600 14px var(--mono); }
+    .term-bar .src { font-size: 13px; }
+    .term-bar .acts { display: inline-flex; gap: 4px; margin-left: auto; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 1px 9px; }
+    .pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+    .pill.run i { background: var(--ok); }
+    .pill.busy i { background: var(--c2); animation: blink 1s steps(2) infinite; }
+    .pill.exit i { background: var(--err); }
+    .pill.echo { color: var(--c2); border-color: var(--c2); }
+    @keyframes blink { 50% { opacity: .2; } }
+    .term { position: relative; background: var(--term-bg); color: var(--term-ink); height: 540px; overflow: auto; padding: 12px 14px 18px; cursor: text; font: 13.5px/1.5 var(--mono); }
+    .term pre { margin: 0; font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .term pre ::selection, .term pre::selection { background: var(--term-sel); }
+    .term .typed { color: var(--term-typed); }
+    .term .sys { color: var(--muted); font-style: italic; }
+    .term .caret { display: inline-block; width: .6em; height: 1.2em; vertical-align: -.22em; background: var(--term-typed); margin-left: 1px; opacity: .35; }
+    .term.focused .caret { opacity: 1; animation: blink 1.1s steps(2) infinite; }
+    .term .caret.mid { width: 2px; margin-left: 0; margin-right: -2px; }
+    .term form { position: absolute; left: 0; bottom: 0; width: 100%; height: 0; overflow: hidden; }
+    .term input { position: absolute; left: 0; top: 0; width: 100%; font-size: 16px; opacity: 0; border: 0; padding: 0; }
+    .busy-line { display: flex; gap: 8px; align-items: center; color: var(--muted); font: 12.5px var(--mono); padding: 7px 14px; border-top: 1px solid var(--line); }
+    .spinner { flex: none; width: 14px; height: 14px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--accent) 25%, transparent); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .chips { padding: 10px 14px 12px; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+    .chips .row span { color: var(--muted); font-size: 13px; margin-right: 2px; min-width: 44px; }
+    .chip { text-align: left; font: 12.5px var(--mono); padding: 3px 9px; border: 1px solid var(--line); border-radius: 99px; background: transparent; color: var(--ink); }
+    .chip:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* side panels */
+    .clock { font: 600 17px var(--mono); font-variant-numeric: tabular-nums; }
+    .clock small { display: block; font: 12px system-ui, sans-serif; color: var(--muted); margin-top: 1px; }
+    .countdown { font: 600 17px var(--mono); font-variant-numeric: tabular-nums; }
+    .solver { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 8px; font-size: 13px; color: var(--muted); }
+    .solver input { font: 13px var(--mono); width: 150px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--bg); color: var(--ink); }
+    .solver output { font: 600 14px var(--mono); color: var(--ink); }
+    ul.facts { margin: 0; padding-left: 18px; font-size: 13.5px; display: grid; gap: 6px; }
+    ul.facts b { font-weight: 600; }
+    .steps { margin: 0; padding-left: 18px; font-size: 13.5px; display: grid; gap: 4px; }
+    .steps code { background: var(--soft); padding: 0 4px; border-radius: 4px; }
+    .err { background: var(--err-soft); border: 1px solid var(--err); border-radius: 10px; padding: 10px 14px; margin: 10px 14px; color: var(--err); font: 13px var(--mono); overflow-wrap: anywhere; }
+    footer { color: var(--muted); font-size: 13px; margin-top: 24px; }
+
+    @media (max-width: 720px) {
+      .wrap { padding-top: 18px; }
+      header img { width: 42px; height: 42px; }
+      h1 { font-size: 21px; }
+      .panel { padding: 14px; border-radius: 10px; }
+      .term-panel { padding: 0; }
+      .term { height: 440px; font-size: 12.5px; padding: 10px 10px 16px; }
+      .term-bar { padding: 9px 10px; }
+      .chips { padding: 9px 10px 11px; }
+      .mini { padding: 5px 10px; }
+      .long { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="icon.svg" alt="" width="52" height="52">
+    <div>
+      <h1>Security Systems</h1>
+      <p>The <a href="https://github.com/Andrew1407/SecuritySystems">SecuritySystems</a> access-control console app, running in your browser. Its own C++ is compiled to WebAssembly with emscripten, over an in-memory <code>disk-model/</code> made by the repo's <code>setup.sh</code>.</p>
+    </div>
+    <button class="theme-toggle" data-theme-toggle></button>
+  </header>
+
+  <div class="layout">
+    <section class="panel term-panel" aria-label="Terminal">
+      <div class="term-bar">
+        <span class="title">./out/lab</span>
+        <span class="lang">C++</span>
+        <span class="pill" id="status"><i></i><span>starting…</span></span>
+        <span class="pill echo" id="echo" hidden title="The app turned terminal echo off (termios), so your input is masked">echo off</span>
+        <span class="acts">
+          <button class="mini" id="copy" type="button">Copy output</button>
+          <button class="mini" id="restart" type="button" title="Run the app again; the disk-model keeps its users, keys and files">Run again</button>
+        </span>
+      </div>
+      <div class="term" id="term" tabindex="-1">
+        <pre id="screen"><span id="out"></span><span id="line"></span><span class="caret" id="caret"></span></pre>
+        <form id="form" autocomplete="off"><input id="input" aria-label="Terminal input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send"></form>
+      </div>
+      <div class="busy-line" id="busy" hidden><span class="spinner" aria-hidden="true"></span><span></span></div>
+      <div id="error" class="err" hidden></div>
+      <div class="chips" id="chips"></div>
+    </section>
+
+    <aside>
+      <section class="panel">
+        <h2>Try it</h2>
+        <ol class="steps">
+          <li><code>r</code> to sign up, role <code>a</code> (admin), <code>p</code> (privileged) or <code>u</code> (common user).</li>
+          <li>A name, then a password with a lower and upper case letter, a digit and a special character: 4 to 26 symbols, at least 8 for an admin, e.g. <code>Secret#2026</code>.</li>
+          <li>Four security questions and answers. Your RSA keys are made and you land in the shell.</li>
+          <li>Try the chips below the terminal, then <b>Run again</b> and sign in with <code>l</code> as another role.</li>
+        </ol>
+      </section>
+
+      <section class="panel">
+        <h2>Virtual clock</h2>
+        <div class="clock" id="clock">…<small>the app's time()</small></div>
+        <div class="row" style="margin-top:10px">
+          <button class="op" data-days="1" type="button">+1 day</button>
+          <button class="op" data-days="3" type="button">+3 days</button>
+          <button class="op" data-days="4" type="button">+4 days</button>
+          <button class="mini" id="clock-reset" type="button">Reset</button>
+        </div>
+        <p class="hint">Passwords expire after 3 days and RSA keys after 4, checked when you sign in. The monitoring log is checked once a day when the shell starts.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Verification thread</h2>
+        <div class="countdown" id="countdown">not started</div>
+        <div class="row" style="margin-top:8px"><button class="op" id="wake" type="button" disabled>Ask now</button></div>
+        <p class="hint">Once you're in the shell, <code>AccessController</code>'s thread asks a security question (85%) or the secret function (15%) every minute. Answer on the next line before it asks again, or the account loses a try and the app exits.</p>
+        <div class="solver"><label for="fy">f(x) =</label><input id="fy" inputmode="decimal" placeholder="paste the value"><span>x =</span><output id="fx">…</output></div>
+        <p class="hint">The secret function from <code>setup.sh</code> is <code>exp(x * a)</code> with <code>a = 6</code>, so x = ln(f) / 6, to 2 decimals.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Native and shimmed</h2>
+        <ul class="facts">
+          <li><b>Native:</b> every line of <code>src/</code> and <code>lib/mathexpr</code>, compiled with emscripten: the layers, password rules, journal and monitoring parsing, <code>chmod</code> rules, FFT arithmetic.</li>
+          <li><b>Shell:</b> <code>system()</code> and <code>popen()</code> run a small JS shell over the in-memory FS that honours the permission bits. Each command is its own subshell, as with <code>popen()</code>.</li>
+          <li><b>openssl:</b> <code>genrsa</code>, <code>rsa</code>, <code>pkeyutl</code> and <code>prime</code> in JS BigInt, PKCS#1 v1.5 like OpenSSL. The 8192-bit admin keypair comes from the real <code>setup.sh</code> at build time; keys made in the browser are 2048-bit to stay fast.</li>
+          <li><b>Thread:</b> no wasm threads on GitHub Pages, so <code>std::thread</code> runs as an emscripten fiber that wakes while the app waits for input.</li>
+          <li><b>Disk:</b> kept between runs in this tab. <button class="mini" id="reset-disk" type="button">Fresh disk-model</button></li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  <footer>The app runs in a Web Worker, compiled from <a href="https://github.com/Andrew1407/SecuritySystems/tree/main/src">src/</a> with a small <a href="https://github.com/Andrew1407/SecuritySystems/blob/main/web/wasm/shim.cpp">web shim</a>. Nothing leaves your browser. <b style="color:#ec7a4f">DichES</b></footer>
+</div>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>
