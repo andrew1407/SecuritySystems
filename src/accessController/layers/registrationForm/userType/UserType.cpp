@@ -16,7 +16,7 @@ UserType::UserType() {
 
 bool UserType::run() {
   string input;
-  cout << "Choose the role (admin - a, common user - u, priviledged user - p): ";
+  cout << "Choose the role (admin - a, common user - u, privileged user - p): ";
   cin >> input;
   if (input.length() != 1) return false;
   char inputType = input[0];

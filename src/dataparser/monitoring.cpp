@@ -78,7 +78,7 @@ namespace dataparser {
       }
       if (line.rfind("[Suspicious behavior] ", 0) == 0) continue;
       for (auto name : users) {
-        if (line.rfind(name, 0) == 0) {
+        if (line.rfind(name + ' ', 0) == 0) {
           if (failures.find(name) == failures.end()) failures[name] = 0;
           ++failures[name];
         };

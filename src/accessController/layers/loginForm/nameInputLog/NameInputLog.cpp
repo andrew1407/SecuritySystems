@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include "./NameInputLog.hpp"
 #include "../passwordInputLog/PasswordInputLog.hpp"
 #include "../../../input/input.hpp"
@@ -15,7 +16,7 @@ bool NameInputLog::run() {
   bool valid = input::getUsername(this->name);
   if (!valid) return valid;
   if (this->nameExists()) return true;
-  cout << "Entered name isn't registeged" << endl;
+  cout << "Entered name isn't registered" << endl;
   return false;
 }
 

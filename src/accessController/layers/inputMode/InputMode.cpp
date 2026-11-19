@@ -67,7 +67,7 @@ void InputMode::sendQuestion() {
     float x, y;
     functionCheck::generateValue(&this->expression, x, y);
     this->answer = to_string(x);
-    cout << "\nVerification! Sercet function f(x) = " << to_string(y) << " (round up 2 minimum):" << endl; 
+    cout << "\nVerification! Secret function f(x) = " << to_string(y) << " (round up 2 minimum):" << endl; 
   } else {
     int i = rand() % this->user.questions.size();
     dataparser::Question q = this->user.questions[i];

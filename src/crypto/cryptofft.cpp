@@ -31,10 +31,9 @@ namespace crypto {
   }
 
   uint64_t fftPow(uint64_t a, uint64_t b) {
-    bool aGreater = a > b;
     uint64_t result = 1;
-    for (uint64_t i = 0; i < (aGreater ? b : a); ++i)
-      result = crypto::fftMul(result, aGreater ? a : b);
+    for (uint64_t i = 0; i < b; ++i)
+      result = crypto::fftMul(result, a);
     return result;
   }
 
@@ -74,20 +73,21 @@ uint64_t fftOperation(
   splitDigits(a, &aVec);
   splitDigits(b, &bVec);
   uint maxLen = max(aVec.size(), bVec.size());
-  uint resLen = pow(2, maxLen);
+  uint log2Len = ceil(log2(2 * maxLen));
+  uint resLen = 1 << log2Len;
   cmpVal aIn[resLen], bIn[resLen], resultIn[resLen];
   cmpVal aOut[resLen], bOut[resLen], resultOut[resLen];
   for (int i = 0; i < resLen; ++i) {
     aIn[i] = i < aVec.size() ? aVec[i] : 0;
     bIn[i] = i < bVec.size() ? bVec[i] : 0;
   }
-  fft::fftFn(aIn, aOut, maxLen);
-  fft::fftFn(bIn, bOut, maxLen);
+  fft::fftFn(aIn, aOut, log2Len);
+  fft::fftFn(bIn, bOut, log2Len);
   for (int i = 0; i < resLen; ++i) resultIn[i] = composer(aOut[i], bOut[i]);
-  fft::ifftFn(resultIn, resultOut, maxLen);
-  uint64_t result = 0;
-  for (int i = 0; i < resLen; ++i)
-    result += pow(10, i) * (int)(resultOut[i].real() + 0.5);
+  fft::ifftFn(resultIn, resultOut, log2Len);
+  uint64_t result = 0, base = 1;
+  for (int i = 0; i < resLen; ++i, base *= 10)
+    result += base * (int)(resultOut[i].real() + 0.5);
   return result;
 }
 

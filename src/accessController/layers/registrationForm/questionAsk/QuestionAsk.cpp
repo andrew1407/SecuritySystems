@@ -15,9 +15,9 @@ bool QuestionAsk::run() {
     string text;
     string answer;
     cout << "Enter a question number " << ++i << ": " << endl;
-    cin >> text;
+    getline(cin >> ws, text);
     cout << "Enter an answer to question " << i << ": " << endl;
-    cin >> answer;
+    getline(cin >> ws, answer);
     this->querstions.push_back({ text, answer });
   }
 

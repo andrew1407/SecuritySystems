@@ -1,6 +1,7 @@
 #include <ctime>
 #include <iomanip>
 #include <chrono>
+#include <sstream>
 #include "./logger.hpp"
 #include "../tools.hpp"
 
@@ -28,7 +29,8 @@ namespace logger {
 }
 
 time_t parseTime(string* timeStr) {
-  struct tm time;
+  struct tm time = {};
+  time.tm_isdst = -1;
   strptime(timeStr->c_str(), TIME_FORMAT, &time);
   return mktime(&time);
 }

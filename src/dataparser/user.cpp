@@ -52,7 +52,7 @@ namespace dataparser {
       if (firstLine) {
         firstLine = false;
         continue;
-      } else if (!found && line.rfind(*name, 0) == 0) {
+      } else if (!found && line.rfind(*name + ' ', 0) == 0) {
         found = true;
         params = line;
       } else if (found) {
@@ -111,6 +111,7 @@ dataparser::User parseUser(string *data, vector<string> *questionData) {
     parsed.push_back(val);
     val.clear();
   }
+  parsed.push_back(val);
 
   for (int i = 0; i < questionData->size(); i += 2) {
     questions.push_back({
@@ -144,7 +145,7 @@ void configureJournal(string *username, string *configurable) {
       entries += line + '\n';
       continue;
     }
-    if (line.rfind(*username, 0) == 0) {
+    if (line.rfind(*username + ' ', 0) == 0) {
       ++counter;
       if (configurable) entries += *configurable;
     } else if (counter > 0 && counter < 10) {

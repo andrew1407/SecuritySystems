@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "../cmd/cmd.hpp"
 #include "../tools.hpp"
 #include "../dataparser/dataparser.hpp"
@@ -31,19 +32,19 @@ namespace crypto {
   }
 
   void encrypt(string from, string to, string pubKey) {
-    string command = "openssl rsautl -encrypt -inkey ";
+    string command = "openssl pkeyutl -encrypt -inkey ";
     command += pubKey + " -pubin -in " + from + " -out " + to;
     system(command.c_str());
   }
 
   void decrypt(string from, string to, string privKey) {
-    string command = "openssl rsautl -decrypt -inkey ";
+    string command = "openssl pkeyutl -decrypt -inkey ";
     command += privKey + " -in " + from + " -out " + to;
     system(command.c_str());
   }
 
   string decrypt(string from, string privKey) {
-    string command = "openssl rsautl -decrypt -inkey ";
+    string command = "openssl pkeyutl -decrypt -inkey ";
     command += privKey + " -in " + from;
     return cmd::execWithOutput(command.c_str());
   }

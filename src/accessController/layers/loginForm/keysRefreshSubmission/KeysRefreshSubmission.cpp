@@ -14,7 +14,7 @@ KeysRefreshSubmission::KeysRefreshSubmission(dataparser::User user): user(user) 
 bool KeysRefreshSubmission::run() {
   string input;
   cout << "Your keys terms are expired. Would you like to refresh (y/n): ";
-  cin >> input;
+  getline(cin >> ws, input);
   if (input.length() != 1) return false;
   this->answer = input[0];
   if (this->answer != 'y' && this->answer != 'n') return false;

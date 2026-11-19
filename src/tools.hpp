@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <cstdint>
 
 const std::string DISK_PATH = "disk-model";
 const std::string ADMIN_FOLDER = DISK_PATH + "/.admin";
